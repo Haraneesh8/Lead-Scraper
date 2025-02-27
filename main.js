@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const fs = require('fs');
 
 (async () => {
     
@@ -25,14 +26,28 @@ const { chromium } = require('playwright');
 
     // Scroll to the bottom of the google map page until it says "You've reached the end of the list"
     let endOfList = false;
+    let prevCount = 0;
     while (!endOfList) {
-        await scroll.evaluate(node => node.scrollBy(0, 1000));
-        endOfList = await page.evaluate(() => document.body.innerText.includes("You've reached the end of the list"));
+        await scroll.evaluate(node => node.scrollBy(0, 10000));
+        await page.waitForTimeout(1000);
+
+        const placeCount = await page.$$eval('a[href^="https://www.google.com/maps/place/"]', places => places.length)
+        
+        if (placeCount === prevCount){
+            endOfList = true;
+            console.log('End Of List Reached');
+        } else {
+            prevCount = placeCount;
+        }
+        
+        console.log('scrolled down');
     }
 
-    // Make sure that the end of the list is reached
-    console.log('End Of List Reached');
+    // Extract the url's of each of the places
+    const urls = await page.$$eval('a', links => links.map(link => link.href).filter(href => href.startsWith('https://www.google.com/maps/place/')));
 
+    //write to CSV file
+    fs.writeFileSync('urls.csv', urls.join('\n'));
 
     await browser.close();
 })();
