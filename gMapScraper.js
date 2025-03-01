@@ -10,9 +10,9 @@ const fs = require('fs');
     const page = await browser.newPage();
     await page.goto(googleMapUrl);
     
-    await page.waitForSelector("[jstcache = '3']")
+    await page.waitForSelector("[jstcache = '3']");
     // Successfully found the above element which basically contains all data for places that came up
-    console.log('Loaded')
+    console.log('Loaded');
 
     //Got the xpath of the scroll element and set as variable
     const scroll = await page.$('xpath=/html/body/div[2]/div[3]/div[8]/div[9]/div/div/div[1]/div[2]/div/div[1]/div/div/div[1]/div[1]')
@@ -47,7 +47,7 @@ const fs = require('fs');
     const urls = await page.$$eval('a', links => links.map(link => link.href).filter(href => href.startsWith('https://www.google.com/maps/place/')));
 
     //write to CSV file
-    fs.writeFileSync('urls.csv', urls.join('\n'));
+    fs.writeFileSync('gMapUrls.csv', urls.join('\n'));
 
     await browser.close();
 })();
