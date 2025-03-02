@@ -71,6 +71,7 @@ const fs = require('fs');
 
         const phone = await individualPage.$('button[data-tooltip="Copy phone number"]');
         let phoneText = phone ? await individualPage.evaluate(element => element.textContent, phone) : '';
+        phoneText = phoneText.replace(/[^\d+()\s-]/g, '').trim();
         phoneText = `"${phoneText}"`;
 
         url = `"${url}"`;
@@ -78,18 +79,19 @@ const fs = require('fs');
         return { nameText, ratingText, categoryText, websiteText, phoneText, url };
     };
 
-    // Batch processing
-    const batchSize = 5; // Adjust batch size based on your system capability
+    // Prcoess urls in batches to make it quicker
+    const batchSize = 5; // 5 was found to be a good number, can change based on how fast your system runs
     const results = [];
 
     for (let i = 0; i < urls.length; i += batchSize) {
         const batchUrls = urls.slice(i, i + batchSize);
         const batchResults = await Promise.all(batchUrls.map(url => individualPageData(url)));
         results.push(...batchResults);
+        // To make sure that the batching is actually working
         console.log(`Batch ${i / batchSize + 1} completed.`);
     }
 
-    // Convert results to CSV format and write to file
+    // Convert the results into a CSV file which was named at the top
     const csvHeader = 'Name,Rating,Category,Website,Phone,Url\n';
     const csvRows = results.map(r => `${r.nameText},${r.ratingText},${r.categoryText},${r.websiteText},${r.phoneText},${r.url}`).join('\n');
     fs.writeFileSync(csvFileName, csvHeader + csvRows);
